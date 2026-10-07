@@ -4,47 +4,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Block Fall</title>
-    <!-- Подключаем манифест для PWA -->
+    
+    <!-- 1. Иконка вкладки сайта -->
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href="manifest.json">
+
+    <!-- 2. Пиксельный 8-битный шрифт Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #222; color: #fff; text-align: center; margin: 0; font-family: monospace; overflow: hidden; touch-action: none; }
-        h1 { margin: 10px 0; color: #0f0; font-size: 24px; }
-        
-        .game-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .game-container { display: flex; justify-content: center; align-items: flex-start; gap: 15px; position: relative; }
-        
-        canvas { background-color: #000; border: 2px solid #555; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-        
-        .ui-panel { display: flex; flex-direction: column; gap: 10px; text-align: center; font-size: 16px; }
-        .box { background: #111; padding: 10px; border: 2px solid #555; border-radius: 5px; min-width: 80px; }
-        .box p { margin: 0 0 5px 0; color: #aaa; font-weight: bold; font-size: 12px; }
-        .box span { display: block; font-size: 20px; color: #fff; }
-        .mini-canvas { width: 80px; height: 80px; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Press Start 2P', monospace;
+        }
 
-        /* Оверлей (Пауза / Game Over) */
-        #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: #fff; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #overlay h2 { color: #0f0; font-size: 30px; margin-bottom: 10px; }
-        #overlay button { background: #0f0; color: #000; border: none; padding: 10px 20px; font-size: 18px; font-family: monospace; cursor: pointer; font-weight: bold; }
+        body {
+            background-color: #121214;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
 
-        /* Мобильные кнопки управления */
-        .mobile-controls { display: none; width: 100%; max-width: 400px; margin-top: 15px; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
-        .d-pad, .action-buttons { display: grid; gap: 10px; }
-        .d-pad { grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px; }
-        .action-buttons { grid-template-columns: 60px 60px; align-items: center; }
-        .btn { background: rgba(255,255,255,0.2); border: 2px solid #555; border-radius: 50%; color: #fff; font-size: 20px; display: flex; justify-content: center; align-items: center; user-select: none; }
-        .btn:active { background: rgba(255,255,255,0.5); }
-        
-        .btn-up { grid-column: 2; grid-row: 1; }
-        .btn-left { grid-column: 1; grid-row: 2; }
-        .btn-down { grid-column: 2; grid-row: 2; }
-        .btn-right { grid-column: 3; grid-row: 2; }
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            padding-top: 10px;
+        }
 
-        /* Адаптация под телефоны */
-        @media (max-width: 600px) {
-            .game-container { gap: 5px; }
-            canvas#gameCanvas { width: 200px; height: 400px; } /* Уменьшаем поле на мобилках */
-            .mobile-controls { display: flex; } /* Показываем кнопки */
-            h1 { display: none; } /* Прячем заголовок для экономии места */
+        h1 {
+            margin: 0 0 10px 0;
+            color: #00ff66;
+            font-size: 20px;
+            text-shadow: 3px 3px #005522;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 12px;
+            position: relative;
+        }
+
+        /* Кубическое игровое поле с ретро-рамкой */
+        canvas#gameCanvas {
+            background-color: #000;
+            border: 4px solid #fff;
+            box-shadow: inset 4px 4px 0px #333, 6px 6px 0px #000;
+        }
+
+        /* Боковые панели */
+        .ui-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .box {
+            background: #1c1c22;
+            padding: 8px;
+            border: 3px solid #555;
+            box-shadow: inset -2px -2px 0px #000, inset 2px 2px 0px #888;
+            min-width: 75px;
+        }
+
+        .box p {
+            margin: 0 0 6px 0;
+            color: #888;
+            font-size: 9px;
+        }
+
+        .box span {
+            display: block;
+            font-size: 12px;
+            color: #00ff66;
+        }
+
+        .mini-canvas {
+            width: 70px;
+            height: 70px;
+        }
+
+        /* Оверлей (Пауза / Конец игры) */
+        #overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+
+        #overlay h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        #overlay button {
+            background: #00ff66;
+            color: #000;
+            border: 3px solid #fff;
+            padding: 10px 15px;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px #000;
+        }
+
+        /* 4. КУБИЧЕСКИЕ КНОПКИ НА ВСЮ НИЖНЮЮ ЧАСТЬ ЭКРАНА */
+        .mobile-controls {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 190px;
+            background: #18181c;
+            border-top: 4px solid #444;
+            padding: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .btn {
+            background: #2a2a32;
+            border: 3px solid #666;
+            box-shadow: inset 3px 3px 0px #888, inset -3px -3px 0px #111, 0 3px 0px #000;
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* Эффект нажатия (вдавливание) */
+        .btn:active {
+            box-shadow: inset -3px -3px 0px #888, inset 3px 3px 0px #111;
+            transform: translateY(2px);
+        }
+
+        /* Акцентные цвета кнопок действий */
+        .btn-hold { color: #00ffff; border-color: #008888; font-size: 11px; }
+        .btn-rotate { color: #d442f5; border-color: #8c1da6; font-size: 11px; }
+        .btn-drop { color: #ff3344; border-color: #aa1122; font-size: 11px; }
+        .btn-dir { font-size: 20px; }
+
+        /* Адаптив для смартфонов */
+        @media (max-width: 650px) {
+            .mobile-controls { display: grid; }
+            .game-wrapper { padding-bottom: 200px; }
+            h1 { font-size: 14px; margin-bottom: 5px; }
+            canvas#gameCanvas { width: 180px; height: 360px; }
+            .mini-canvas { width: 50px; height: 50px; }
+            .box { padding: 4px; min-width: 60px; }
+            .box p { font-size: 7px; margin-bottom: 3px; }
+            .box span { font-size: 10px; }
         }
     </style>
 </head>
@@ -53,9 +182,9 @@
         <h1>BLOCK FALL</h1>
         
         <div class="game-container">
-            <!-- Левая панель -->
+            <!-- Левая колонка -->
             <div class="ui-panel">
-                <div class="box"><p>HOLD (C)</p><canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas></div>
+                <div class="box"><p>HOLD</p><canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas></div>
                 <div class="box"><p>SCORE</p><span id="score">0</span></div>
                 <div class="box"><p>BEST</p><span id="highScore">0</span></div>
             </div>
@@ -69,7 +198,7 @@
                 </div>
             </div>
             
-            <!-- Правая панель -->
+            <!-- Правая колонка -->
             <div class="ui-panel">
                 <div class="box"><p>NEXT</p><canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas></div>
                 <div class="box"><p>LEVEL</p><span id="level">1</span></div>
@@ -77,18 +206,17 @@
             </div>
         </div>
 
-        <!-- Мобильные кнопки -->
+        <!-- 4. Удобная сетка кнопок (3x2) -->
         <div class="mobile-controls">
-            <div class="d-pad">
-                <div class="btn btn-up" id="btnRotate">↻</div>
-                <div class="btn btn-left" id="btnLeft">←</div>
-                <div class="btn btn-down" id="btnDown">↓</div>
-                <div class="btn btn-right" id="btnRight">→</div>
-            </div>
-            <div class="action-buttons">
-                <div class="btn" id="btnHold" style="width:50px; height:50px; font-size:14px;">HOLD</div>
-                <div class="btn" id="btnDrop" style="width:70px; height:70px; font-size:14px; border-radius: 10px;">DROP</div>
-            </div>
+            <!-- Верхний ряд: Действия -->
+            <div class="btn btn-hold" id="btnHold">HOLD</div>
+            <div class="btn btn-rotate" id="btnRotate">ROTATE</div>
+            <div class="btn btn-drop" id="btnDrop">DROP</div>
+
+            <!-- Нижний ряд: Направления -->
+            <div class="btn btn-dir" id="btnLeft">◀</div>
+            <div class="btn btn-dir" id="btnDown">▼</div>
+            <div class="btn btn-dir" id="btnRight">▶</div>
         </div>
     </div>
     
