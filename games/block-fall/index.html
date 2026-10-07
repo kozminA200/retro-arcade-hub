@@ -17,7 +17,6 @@
     <style>
         :root {
             --controls-h: calc(125px + env(safe-area-inset-bottom, 0px));
-            --hud-h: 68px;
         }
 
         * {
@@ -42,77 +41,83 @@
             justify-content: space-between;
         }
 
-        /* 1. ВЕРХНЕЕ ТАБЛО (HUD НАВЕРХУ) */
-        .top-hud {
-            height: var(--hud-h);
-            width: 100%;
-            max-width: 440px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 8px 0 8px;
-            gap: 6px;
-        }
-
-        .hud-box {
+        .box {
             background: #1c1c22;
             border: 2px solid #555;
             box-shadow: inset -2px -2px 0px #000, inset 2px 2px 0px #777;
+        }
+
+        /* --- МОБИЛЬНЫЙ ВИД (ПО УМОЛЧАНИЮ) --- */
+        .desktop-title { display: none; }
+
+        .game-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: calc(100dvh - var(--controls-h));
+            max-height: calc(100dvh - var(--controls-h));
+            width: 100%;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+        }
+
+        /* Верхняя панель HUD на мобилках */
+        .hud-top-bar {
+            width: 100%;
+            max-width: 420px;
+            height: 58px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            gap: 4px;
+        }
+
+        .panel { display: flex; gap: 4px; align-items: center; }
+        .left-panel { flex-direction: row; }
+        .right-panel { flex-direction: row-reverse; } /* NEXT всегда с краю справа */
+
+        .box-hold, .box-next {
+            width: 50px;
+            height: 50px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-        }
-
-        /* Окошки HOLD и NEXT */
-        .side-preview {
-            width: 54px;
-            height: 56px;
             padding: 2px;
         }
-        .side-preview p { font-size: 6px; color: #888; margin-bottom: 2px; }
-        .mini-canvas { width: 40px; height: 40px; }
+        .box-hold p, .box-next p { font-size: 6px; color: #888; margin-bottom: 2px; }
+        .mini-canvas { width: 36px; height: 36px; }
 
-        /* Центр табло со счетом */
-        .hud-center-stats {
-            flex: 1;
-            height: 56px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 4px;
-            padding: 4px;
-        }
-        .stat-item {
+        .stat-box {
+            height: 50px;
+            padding: 4px 6px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #101014;
-            border: 1px solid #333;
-            padding: 0 6px;
-        }
-        .stat-item p { font-size: 6px; color: #777; }
-        .stat-item span { font-size: 8px; color: #00ff66; }
-
-        /* 2. ЦЕНТРАЛЬНОЕ ИГРОВОЕ ПОЛЕ */
-        .canvas-area {
-            flex: 1;
-            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            min-width: 48px;
+        }
+        .stat-box p { font-size: 5px; color: #888; margin-bottom: 3px; }
+        .stat-box span { font-size: 8px; color: #00ff66; }
+
+        /* Игровое поле на мобилках занимает всё оставшееся пространство */
+        .canvas-wrap {
+            flex: 1;
             width: 100%;
-            max-height: calc(100dvh - var(--hud-h) - var(--controls-h) - 8px);
-            padding: 4px;
-            position: relative;
-        }
-
-        .canvas-wrapper {
-            position: relative;
-            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
+            position: relative;
+            padding: 4px 0;
+            max-height: calc(100% - 60px);
         }
 
         canvas#gameCanvas {
@@ -125,7 +130,7 @@
             max-height: 100%;
         }
 
-        /* Оверлей Паузы / Game Over */
+        /* Оверлей */
         #overlay {
             display: none;
             position: absolute;
@@ -143,7 +148,7 @@
             padding: 8px 16px; font-size: 10px; cursor: pointer; box-shadow: 3px 3px 0px #000;
         }
 
-        /* 3. КНОПКИ УПРАВЛЕНИЯ СНИЗУ */
+        /* Мобильные кнопки снизу */
         .mobile-controls {
             height: var(--controls-h);
             width: 100%;
@@ -168,7 +173,6 @@
             cursor: pointer;
             touch-action: manipulation;
         }
-
         .btn:active {
             box-shadow: inset -2px -2px 0px #888, inset 2px 2px 0px #111;
             transform: translateY(2px);
@@ -179,58 +183,118 @@
         .btn-drop { color: #ff3344; border-color: #aa1122; font-size: 10px; }
         .btn-dir { font-size: 16px; }
 
-        /* Для ПК */
+        /* --- РЕЖИМ ДЛЯ ПК (БОКОВЫЕ ПАНЕЛИ) --- */
         @media (min-width: 651px) {
-            :root { --controls-h: 0px; --hud-h: 80px; }
+            :root { --controls-h: 0px; }
             .mobile-controls { display: none; }
-            .top-hud { max-width: 500px; height: 80px; }
-            .side-preview { width: 68px; height: 68px; }
-            .mini-canvas { width: 48px; height: 48px; }
-            .side-preview p { font-size: 7px; }
-            .stat-item p { font-size: 7px; }
-            .stat-item span { font-size: 10px; }
-            canvas#gameCanvas { height: 600px; width: 300px; }
+            .desktop-title { display: block; font-size: 20px; color: #00ff66; margin: 15px 0; text-shadow: 2px 2px #005522; }
+
+            .game-wrapper {
+                height: 100vh;
+                max-height: 100vh;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .game-container {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 20px;
+                height: auto;
+            }
+
+            /* Растворяем верхнюю полоску: на ПК элементы становятся колонками по бокам */
+            .hud-top-bar {
+                display: contents;
+            }
+
+            .left-panel, .right-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                height: auto;
+            }
+
+            .box-hold, .box-next {
+                width: 80px;
+                height: 80px;
+            }
+            .box-hold p, .box-next p { font-size: 9px; margin-bottom: 5px; }
+            .mini-canvas { width: 56px; height: 56px; }
+
+            .stat-box {
+                min-width: 80px;
+                height: auto;
+                padding: 8px;
+            }
+            .stat-box p { font-size: 8px; margin-bottom: 5px; }
+            .stat-box span { font-size: 12px; }
+
+            .canvas-wrap {
+                width: 300px;
+                height: 600px;
+                flex: none;
+            }
+            canvas#gameCanvas {
+                width: 300px;
+                height: 600px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- ВЕРХНЯЯ АРКАДНАЯ СТРОКА (HUD ВВЕРХУ) -->
-    <div class="top-hud">
-        <!-- Окошко HOLD слева -->
-        <div class="hud-box side-preview">
-            <p>HOLD</p>
-            <canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas>
-        </div>
-        
-        <!-- Табло счета по центру -->
-        <div class="hud-box hud-center-stats">
-            <div class="stat-item"><p>SCORE</p><span id="score">0</span></div>
-            <div class="stat-item"><p>BEST</p><span id="highScore">0</span></div>
-            <div class="stat-item"><p>LVL</p><span id="level">1</span></div>
-            <div class="stat-item"><p>LINES</p><span id="lines">0</span></div>
-        </div>
+    <div class="game-wrapper">
+        <h1 class="desktop-title">BLOCK FALL</h1>
 
-        <!-- Окошко NEXT справа -->
-        <div class="hud-box side-preview">
-            <p>NEXT</p>
-            <canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas>
-        </div>
-    </div>
+        <div class="game-container">
+            <!-- HUD: На смартфонах лежит вверху над стаканом, на ПК разделяется по бокам -->
+            <div class="hud-top-bar">
+                <div class="panel left-panel">
+                    <div class="box box-hold">
+                        <p>HOLD</p>
+                        <canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas>
+                    </div>
+                    <div class="box stat-box">
+                        <p>SCORE</p>
+                        <span id="score">0</span>
+                    </div>
+                    <div class="box stat-box">
+                        <p>BEST</p>
+                        <span id="highScore">0</span>
+                    </div>
+                </div>
 
-    <!-- БОЛЬШОЕ ИГРОВОЕ ПОЛЕ ПО ЦЕНТРУ -->
-    <div class="canvas-area">
-        <div class="canvas-wrapper">
-            <canvas id="gameCanvas" width="300" height="600"></canvas>
-            
-            <div id="overlay">
-                <h2 id="overlayTitle">PAUSED</h2>
-                <button id="overlayBtn" onclick="togglePause()">RESUME</button>
+                <div class="panel right-panel">
+                    <div class="box box-next">
+                        <p>NEXT</p>
+                        <canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas>
+                    </div>
+                    <div class="box stat-box">
+                        <p>LVL</p>
+                        <span id="level">1</span>
+                    </div>
+                    <div class="box stat-box">
+                        <p>LINES</p>
+                        <span id="lines">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Игровое поле -->
+            <div class="canvas-wrap">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                
+                <div id="overlay">
+                    <h2 id="overlayTitle">PAUSED</h2>
+                    <button id="overlayBtn" onclick="togglePause()">RESUME</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- КНОПКИ ВНИЗУ -->
+    <!-- Мобильный пульт управления снизу -->
     <div class="mobile-controls">
         <div class="btn btn-hold" id="btnHold">HOLD</div>
         <div class="btn btn-rotate" id="btnRotate">ROTATE</div>
