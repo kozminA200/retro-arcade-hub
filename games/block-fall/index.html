@@ -17,7 +17,7 @@
     <style>
         :root {
             --controls-h: calc(125px + env(safe-area-inset-bottom, 0px));
-            --hud-h: 60px;
+            --hud-h: 68px;
         }
 
         * {
@@ -42,64 +42,67 @@
             justify-content: space-between;
         }
 
-        /* 1. ВЕРХНЯЯ АРКАДНАЯ ПАНЕЛЬ (HUD) */
-        .hud {
+        /* 1. ВЕРХНЕЕ ТАБЛО (HUD НАВЕРХУ) */
+        .top-hud {
             height: var(--hud-h);
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 10px 0 10px;
+            padding: 6px 8px 0 8px;
             gap: 6px;
         }
 
-        .box {
+        .hud-box {
             background: #1c1c22;
             border: 2px solid #555;
             box-shadow: inset -2px -2px 0px #000, inset 2px 2px 0px #777;
-        }
-
-        .hud-side {
-            width: 52px;
-            height: 52px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
         }
-        .hud-side p { font-size: 6px; color: #888; margin-bottom: 2px; }
-        .mini-canvas { width: 38px; height: 38px; }
 
-        .hud-center {
+        /* Окошки HOLD и NEXT */
+        .side-preview {
+            width: 54px;
+            height: 56px;
+            padding: 2px;
+        }
+        .side-preview p { font-size: 6px; color: #888; margin-bottom: 2px; }
+        .mini-canvas { width: 40px; height: 40px; }
+
+        /* Центр табло со счетом */
+        .hud-center-stats {
             flex: 1;
-            height: 52px;
+            height: 56px;
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr;
-            gap: 3px;
-            padding: 3px;
+            gap: 4px;
+            padding: 4px;
         }
-        .stat-cell {
+        .stat-item {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            background: #141418;
+            background: #101014;
             border: 1px solid #333;
+            padding: 0 6px;
         }
-        .stat-cell p { font-size: 5px; color: #888; margin-bottom: 2px; }
-        .stat-cell span { font-size: 8px; color: #00ff66; }
+        .stat-item p { font-size: 6px; color: #777; }
+        .stat-item span { font-size: 8px; color: #00ff66; }
 
-        /* 2. ЦЕНТРАЛЬНАЯ ЗОНА С БОЛЬШИМ СТАКАНАМ */
+        /* 2. ЦЕНТРАЛЬНОЕ ИГРОВОЕ ПОЛЕ */
         .canvas-area {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-height: calc(100dvh - var(--hud-h) - var(--controls-h) - 10px);
+            max-height: calc(100dvh - var(--hud-h) - var(--controls-h) - 8px);
             padding: 4px;
             position: relative;
         }
@@ -120,10 +123,9 @@
             width: auto;
             aspect-ratio: 10 / 20;
             max-height: 100%;
-            max-width: 100vw;
         }
 
-        /* Оверлей (Пауза / Конец игры) */
+        /* Оверлей Паузы / Game Over */
         #overlay {
             display: none;
             position: absolute;
@@ -141,7 +143,7 @@
             padding: 8px 16px; font-size: 10px; cursor: pointer; box-shadow: 3px 3px 0px #000;
         }
 
-        /* 3. КОМПАКТНЫЕ ЭРГОНОМИЧНЫЕ КНОПКИ СНИЗУ */
+        /* 3. КНОПКИ УПРАВЛЕНИЯ СНИЗУ */
         .mobile-controls {
             height: var(--controls-h);
             width: 100%;
@@ -177,43 +179,46 @@
         .btn-drop { color: #ff3344; border-color: #aa1122; font-size: 10px; }
         .btn-dir { font-size: 16px; }
 
-        /* Для мониторов компьютеров */
+        /* Для ПК */
         @media (min-width: 651px) {
             :root { --controls-h: 0px; --hud-h: 80px; }
             .mobile-controls { display: none; }
-            .hud { max-width: 500px; height: 80px; }
-            .hud-side { width: 70px; height: 70px; }
-            .mini-canvas { width: 50px; height: 50px; }
-            .hud-side p { font-size: 8px; }
-            .stat-cell p { font-size: 7px; }
-            .stat-cell span { font-size: 11px; }
+            .top-hud { max-width: 500px; height: 80px; }
+            .side-preview { width: 68px; height: 68px; }
+            .mini-canvas { width: 48px; height: 48px; }
+            .side-preview p { font-size: 7px; }
+            .stat-item p { font-size: 7px; }
+            .stat-item span { font-size: 10px; }
             canvas#gameCanvas { height: 600px; width: 300px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Верхний компактный HUD -->
-    <div class="hud">
-        <div class="box hud-side">
+    <!-- ВЕРХНЯЯ АРКАДНАЯ СТРОКА (HUD ВВЕРХУ) -->
+    <div class="top-hud">
+        <!-- Окошко HOLD слева -->
+        <div class="hud-box side-preview">
             <p>HOLD</p>
             <canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas>
         </div>
         
-        <div class="box hud-center">
-            <div class="stat-cell"><p>SCORE</p><span id="score">0</span></div>
-            <div class="stat-cell"><p>BEST</p><span id="highScore">0</span></div>
-            <div class="stat-cell"><p>LVL</p><span id="level">1</span></div>
-            <div class="stat-cell"><p>LINES</p><span id="lines">0</span></div>
+        <!-- Табло счета по центру -->
+        <div class="hud-box hud-center-stats">
+            <div class="stat-item"><p>SCORE</p><span id="score">0</span></div>
+            <div class="stat-item"><p>BEST</p><span id="highScore">0</span></div>
+            <div class="stat-item"><p>LVL</p><span id="level">1</span></div>
+            <div class="stat-item"><p>LINES</p><span id="lines">0</span></div>
         </div>
 
-        <div class="box hud-side">
+        <!-- Окошко NEXT справа -->
+        <div class="hud-box side-preview">
             <p>NEXT</p>
             <canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas>
         </div>
     </div>
 
-    <!-- Большое игровое поле по центру -->
+    <!-- БОЛЬШОЕ ИГРОВОЕ ПОЛЕ ПО ЦЕНТРУ -->
     <div class="canvas-area">
         <div class="canvas-wrapper">
             <canvas id="gameCanvas" width="300" height="600"></canvas>
@@ -225,7 +230,7 @@
         </div>
     </div>
 
-    <!-- Удобная клавиатура снизу -->
+    <!-- КНОПКИ ВНИЗУ -->
     <div class="mobile-controls">
         <div class="btn btn-hold" id="btnHold">HOLD</div>
         <div class="btn btn-rotate" id="btnRotate">ROTATE</div>
