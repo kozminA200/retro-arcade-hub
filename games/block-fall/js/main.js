@@ -83,10 +83,13 @@ function drawMatrix(matrix, offsetX, offsetY, color = null, alpha = 1, targetCtx
                 const blockColor = color || COLORS[value];
                 targetCtx.fillStyle = blockColor;
                 targetCtx.fillRect(x + offsetX, y + offsetY, 1, 1);
+                
+                // Внутренний светлый объемный куб
                 targetCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                 targetCtx.fillRect(x + offsetX + 0.2, y + offsetY + 0.2, 0.6, 0.6);
+                
                 targetCtx.lineWidth = 0.05;
-                targetCtx.strokeStyle = '#222';
+                targetCtx.strokeStyle = '#000';
                 targetCtx.strokeRect(x + offsetX, y + offsetY, 1, 1);
             }
         });
@@ -132,7 +135,7 @@ function gameOver() {
     isGameOver = true;
     cancelAnimationFrame(animationId);
     overlayTitle.innerText = "GAME OVER";
-    overlayTitle.style.color = "#f00";
+    overlayTitle.style.color = "#ff3344";
     overlayBtn.innerText = "RESTART";
     overlayBtn.onclick = resetGame;
     overlay.style.display = "flex";
@@ -144,7 +147,7 @@ function togglePause() {
     if (isPaused) {
         cancelAnimationFrame(animationId);
         overlayTitle.innerText = "PAUSED";
-        overlayTitle.style.color = "#0f0";
+        overlayTitle.style.color = "#00ff66";
         overlayBtn.innerText = "RESUME";
         overlayBtn.onclick = togglePause;
         overlay.style.display = "flex";
@@ -188,60 +191,76 @@ function update(time = 0) {
     animationId = requestAnimationFrame(update);
 }
 
-// --- УПРАВЛЕНИЕ ---
+// --- УПРАВЛЕНИЕ И СИСТЕМА ЗАЖАТИЯ (DAS / ARR) ---
 function moveLeft() { if (!isPaused && !isGameOver) { piece.x--; if (!board.isValid(piece)) piece.x++; } }
 function moveRight() { if (!isPaused && !isGameOver) { piece.x++; if (!board.isValid(piece)) piece.x--; } }
 function rotate() { if (!isPaused && !isGameOver) piece.rotate(board); }
 
-// Клавиатура
-document.addEventListener('keydown', event => {
-    if (event.keyCode === 27 || event.keyCode === 80) togglePause(); // Esc или P - Пауза
-    if (event.keyCode === 37) moveLeft();
-    if (event.keyCode === 39) moveRight();
-    if (event.keyCode === 40) { if (!isPaused && !isGameOver) drop(); }
-    if (event.keyCode === 38) rotate();
-    if (event.keyCode === 32) hardDrop();
-    if (event.keyCode === 67 || event.keyCode === 16) holdPiece();
-});
+// Универсальная функция для зажатия (работает и для мыши/тача, и для клавиатуры)
+function bindRepeatingControl(btnElement, keyCodes, action, initialDelay = 160, repeatInterval = 50) {
+    let timer = null;
+    let interval = null;
+    let isPressed = false;
 
-// Мобильные кнопки
-document.getElementById('btnLeft').addEventListener('pointerdown', moveLeft);
-document.getElementById('btnRight').addEventListener('pointerdown', moveRight);
-document.getElementById('btnDown').addEventListener('pointerdown', () => { if (!isPaused && !isGameOver) drop(); });
-document.getElementById('btnRotate').addEventListener('pointerdown', rotate);
-document.getElementById('btnDrop').addEventListener('pointerdown', hardDrop);
-document.getElementById('btnHold').addEventListener('pointerdown', holdPiece);
+    const start = () => {
+        if (isPressed || isPaused || isGameOver) return;
+        isPressed = true;
+        action();
+        timer = setTimeout(() => {
+            interval = setInterval(() => {
+                if (!isPaused && !isGameOver) action();
+            }, repeatInterval);
+        }, initialDelay);
+    };
 
-// Свайпы по экрану
-let touchStartX = 0, touchStartY = 0;
-canvas.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-}, {passive: true});
+    const stop = () => {
+        isPressed = false;
+        clearTimeout(timer);
+        clearInterval(interval);
+    };
 
-canvas.addEventListener('touchend', e => {
-    if (isPaused || isGameOver) return;
-    let touchEndX = e.changedTouches[0].screenX;
-    let touchEndY = e.changedTouches[0].screenY;
-    let dx = touchEndX - touchStartX;
-    let dy = touchEndY - touchStartY;
-    
-    if (Math.abs(dx) > Math.abs(dy)) {
-        if (Math.abs(dx) > 30) dx > 0 ? moveRight() : moveLeft(); // Свайп вправо/влево
-    } else {
-        if (dy > 40) hardDrop(); // Свайп вниз
-        else if (Math.abs(dy) < 10 && Math.abs(dx) < 10) rotate(); // Тап по экрану
+    if (btnElement) {
+        btnElement.addEventListener('pointerdown', (e) => { e.preventDefault(); start(); });
+        btnElement.addEventListener('pointerup', stop);
+        btnElement.addEventListener('pointerleave', stop);
+        btnElement.addEventListener('pointercancel', stop);
     }
+
+    keyCodes.forEach(code => {
+        window.addEventListener('keydown', (e) => {
+            if (e.code === code && !e.repeat) { e.preventDefault(); start(); }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === code) stop();
+        });
+    });
+}
+
+// 3. Зажатие кнопок: Влево, Вправо и Вниз (ускоренное падение)
+bindRepeatingControl(document.getElementById('btnLeft'), ['ArrowLeft', 'KeyA'], moveLeft, 170, 45);
+bindRepeatingControl(document.getElementById('btnRight'), ['ArrowRight', 'KeyD'], moveRight, 170, 45);
+bindRepeatingControl(document.getElementById('btnDown'), ['ArrowDown', 'KeyS'], () => { if (!isPaused && !isGameOver) drop(); }, 80, 50);
+
+// Одиночные нажатия: Поворот, Hold, Hard Drop, Пауза
+document.getElementById('btnRotate').addEventListener('pointerdown', (e) => { e.preventDefault(); rotate(); });
+document.getElementById('btnHold').addEventListener('pointerdown', (e) => { e.preventDefault(); holdPiece(); });
+document.getElementById('btnDrop').addEventListener('pointerdown', (e) => { e.preventDefault(); hardDrop(); });
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowUp' || e.code === 'KeyW') rotate();
+    if (e.code === 'Space') hardDrop();
+    if (e.code === 'KeyC' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') holdPiece();
+    if (e.code === 'Escape' || e.code === 'KeyP') togglePause();
 });
 
-// Авто-пауза при сворачивании вкладки
+// Авто-пауза при сворачивании
 document.addEventListener("visibilitychange", () => {
     if (document.hidden && !isPaused && !isGameOver) togglePause();
 });
 
-// Регистрация Service Worker (PWA)
+// PWA Service Worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => console.log("Service Worker Registered"));
+    navigator.serviceWorker.register('sw.js').then(() => console.log("SW Registered"));
 }
 
 update();
