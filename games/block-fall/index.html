@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Block Fall</title>
+    <!-- Подключаем манифест для PWA -->
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { background-color: #222; color: #fff; text-align: center; margin: 0; font-family: monospace; overflow: hidden; touch-action: none; }
+        h1 { margin: 10px 0; color: #0f0; font-size: 24px; }
+        
+        .game-wrapper { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .game-container { display: flex; justify-content: center; align-items: flex-start; gap: 15px; position: relative; }
+        
+        canvas { background-color: #000; border: 2px solid #555; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        
+        .ui-panel { display: flex; flex-direction: column; gap: 10px; text-align: center; font-size: 16px; }
+        .box { background: #111; padding: 10px; border: 2px solid #555; border-radius: 5px; min-width: 80px; }
+        .box p { margin: 0 0 5px 0; color: #aaa; font-weight: bold; font-size: 12px; }
+        .box span { display: block; font-size: 20px; color: #fff; }
+        .mini-canvas { width: 80px; height: 80px; }
+
+        /* Оверлей (Пауза / Game Over) */
+        #overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: #fff; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        #overlay h2 { color: #0f0; font-size: 30px; margin-bottom: 10px; }
+        #overlay button { background: #0f0; color: #000; border: none; padding: 10px 20px; font-size: 18px; font-family: monospace; cursor: pointer; font-weight: bold; }
+
+        /* Мобильные кнопки управления */
+        .mobile-controls { display: none; width: 100%; max-width: 400px; margin-top: 15px; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
+        .d-pad, .action-buttons { display: grid; gap: 10px; }
+        .d-pad { grid-template-columns: 50px 50px 50px; grid-template-rows: 50px 50px; }
+        .action-buttons { grid-template-columns: 60px 60px; align-items: center; }
+        .btn { background: rgba(255,255,255,0.2); border: 2px solid #555; border-radius: 50%; color: #fff; font-size: 20px; display: flex; justify-content: center; align-items: center; user-select: none; }
+        .btn:active { background: rgba(255,255,255,0.5); }
+        
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        /* Адаптация под телефоны */
+        @media (max-width: 600px) {
+            .game-container { gap: 5px; }
+            canvas#gameCanvas { width: 200px; height: 400px; } /* Уменьшаем поле на мобилках */
+            .mobile-controls { display: flex; } /* Показываем кнопки */
+            h1 { display: none; } /* Прячем заголовок для экономии места */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <h1>BLOCK FALL</h1>
+        
+        <div class="game-container">
+            <!-- Левая панель -->
+            <div class="ui-panel">
+                <div class="box"><p>HOLD (C)</p><canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas></div>
+                <div class="box"><p>SCORE</p><span id="score">0</span></div>
+                <div class="box"><p>BEST</p><span id="highScore">0</span></div>
+            </div>
+
+            <!-- Игровое поле -->
+            <div style="position: relative;">
+                <canvas id="gameCanvas" width="300" height="600"></canvas>
+                <div id="overlay">
+                    <h2 id="overlayTitle">PAUSED</h2>
+                    <button id="overlayBtn" onclick="togglePause()">RESUME</button>
+                </div>
+            </div>
+            
+            <!-- Правая панель -->
+            <div class="ui-panel">
+                <div class="box"><p>NEXT</p><canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas></div>
+                <div class="box"><p>LEVEL</p><span id="level">1</span></div>
+                <div class="box"><p>LINES</p><span id="lines">0</span></div>
+            </div>
+        </div>
+
+        <!-- Мобильные кнопки -->
+        <div class="mobile-controls">
+            <div class="d-pad">
+                <div class="btn btn-up" id="btnRotate">↻</div>
+                <div class="btn btn-left" id="btnLeft">←</div>
+                <div class="btn btn-down" id="btnDown">↓</div>
+                <div class="btn btn-right" id="btnRight">→</div>
+            </div>
+            <div class="action-buttons">
+                <div class="btn" id="btnHold" style="width:50px; height:50px; font-size:14px;">HOLD</div>
+                <div class="btn" id="btnDrop" style="width:70px; height:70px; font-size:14px; border-radius: 10px;">DROP</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/constants.js"></script>
+    <script src="js/piece.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
