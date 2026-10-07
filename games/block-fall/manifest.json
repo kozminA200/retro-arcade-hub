@@ -4,13 +4,13 @@
   "description": "Классическая ретро-игра",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#222222",
-  "theme_color": "#00ff00",
+  "background_color": "#121214",
+  "theme_color": "#00ff66",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzIyMiIvPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMGYwIi8+PHJlY3QgeD0iNDAiIHk9IjIwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IiMwZjAiLz48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzBmMCIvPjxyZWN0IHg9IjYwIiB5PSIyMCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMGYwIi8+PC9zdmc+",
-      "sizes": "192x192",
-      "type": "image/svg+xml"
+      "src": "./icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
