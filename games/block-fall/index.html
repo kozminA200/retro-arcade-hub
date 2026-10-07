@@ -15,10 +15,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --controls-h: calc(125px + env(safe-area-inset-bottom, 0px));
-        }
-
         * {
             box-sizing: border-box;
             user-select: none;
@@ -32,105 +28,24 @@
             background-color: #121214;
             color: #fff;
             text-align: center;
-            height: 100dvh;
-            width: 100vw;
             overflow: hidden;
             touch-action: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
 
+        /* Общие стили кубических коробок */
         .box {
             background: #1c1c22;
             border: 2px solid #555;
             box-shadow: inset -2px -2px 0px #000, inset 2px 2px 0px #777;
         }
 
-        /* --- МОБИЛЬНЫЙ ВИД (ПО УМОЛЧАНИЮ) --- */
-        .desktop-title { display: none; }
-
-        .game-wrapper {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: calc(100dvh - var(--controls-h));
-            max-height: calc(100dvh - var(--controls-h));
-            width: 100%;
-        }
-
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            align-items: center;
-        }
-
-        /* Верхняя панель HUD на мобилках */
-        .hud-top-bar {
-            width: 100%;
-            max-width: 420px;
-            height: 58px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4px 8px;
-            gap: 4px;
-        }
-
-        .panel { display: flex; gap: 4px; align-items: center; }
-        .left-panel { flex-direction: row; }
-        .right-panel { flex-direction: row-reverse; } /* NEXT всегда с краю справа */
-
-        .box-hold, .box-next {
-            width: 50px;
-            height: 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 2px;
-        }
-        .box-hold p, .box-next p { font-size: 6px; color: #888; margin-bottom: 2px; }
-        .mini-canvas { width: 36px; height: 36px; }
-
-        .stat-box {
-            height: 50px;
-            padding: 4px 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-width: 48px;
-        }
-        .stat-box p { font-size: 5px; color: #888; margin-bottom: 3px; }
-        .stat-box span { font-size: 8px; color: #00ff66; }
-
-        /* Игровое поле на мобилках занимает всё оставшееся пространство */
-        .canvas-wrap {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            padding: 4px 0;
-            max-height: calc(100% - 60px);
-        }
-
         canvas#gameCanvas {
             background-color: #000;
             border: 3px solid #fff;
             box-shadow: inset 3px 3px 0px #333, 4px 4px 0px #000;
-            height: 100%;
-            width: auto;
-            aspect-ratio: 10 / 20;
-            max-height: 100%;
         }
 
-        /* Оверлей */
+        /* Оверлей (Пауза / Конец игры) */
         #overlay {
             display: none;
             position: absolute;
@@ -148,166 +63,179 @@
             padding: 8px 16px; font-size: 10px; cursor: pointer; box-shadow: 3px 3px 0px #000;
         }
 
-        /* Мобильные кнопки снизу */
-        .mobile-controls {
-            height: var(--controls-h);
-            width: 100%;
-            background: #18181c;
-            border-top: 3px solid #444;
-            padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px)) 6px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: 1fr 1fr;
-            gap: 5px;
-            z-index: 100;
-        }
-
-        .btn {
-            background: #2a2a32;
-            border: 3px solid #666;
-            box-shadow: inset 2px 2px 0px #888, inset -2px -2px 0px #111, 0 2px 0px #000;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-        .btn:active {
-            box-shadow: inset -2px -2px 0px #888, inset 2px 2px 0px #111;
-            transform: translateY(2px);
-        }
-
-        .btn-hold { color: #00ffff; border-color: #008888; font-size: 10px; }
-        .btn-rotate { color: #d442f5; border-color: #8c1da6; font-size: 10px; }
-        .btn-drop { color: #ff3344; border-color: #aa1122; font-size: 10px; }
-        .btn-dir { font-size: 16px; }
-
-        /* --- РЕЖИМ ДЛЯ ПК (БОКОВЫЕ ПАНЕЛИ) --- */
+        /* ============================================================
+           1. ДЕСКТОПНЫЙ ИНТЕРФЕЙС (ПК): КЛАССИКА С БОКОВЫМИ ПАНЕЛЯМИ
+           ============================================================ */
         @media (min-width: 651px) {
-            :root { --controls-h: 0px; }
-            .mobile-controls { display: none; }
-            .desktop-title { display: block; font-size: 20px; color: #00ff66; margin: 15px 0; text-shadow: 2px 2px #005522; }
-
-            .game-wrapper {
+            body {
                 height: 100vh;
-                max-height: 100vh;
-                justify-content: center;
+                display: flex;
+                flex-direction: column;
                 align-items: center;
+                justify-content: center;
+            }
+
+            h1 {
+                font-size: 20px;
+                color: #00ff66;
+                margin-bottom: 20px;
+                text-shadow: 2px 2px #005522;
             }
 
             .game-container {
+                display: flex;
                 flex-direction: row;
+                align-items: flex-start;
                 justify-content: center;
-                align-items: center;
                 gap: 20px;
-                height: auto;
             }
 
-            /* Растворяем верхнюю полоску: на ПК элементы становятся колонками по бокам */
-            .hud-top-bar {
+            .ui-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .box {
+                padding: 10px;
+                min-width: 90px;
+            }
+            .box p { font-size: 8px; color: #888; margin-bottom: 6px; }
+            .box span { font-size: 14px; color: #00ff66; }
+
+            .mini-canvas { width: 80px; height: 80px; }
+            canvas#gameCanvas { width: 300px; height: 600px; }
+
+            .canvas-wrap {
+                position: relative;
+            }
+
+            .mobile-controls { display: none; }
+        }
+
+        /* ============================================================
+           2. МОБИЛЬНЫЙ ИНТЕРФЕЙС (СМАРТФОНЫ): HUD СВЕРХУ + БОЛЬШОЙ СТАКАН
+           ============================================================ */
+        @media (max-width: 650px) {
+            :root {
+                --controls-h: calc(130px + env(safe-area-inset-bottom, 0px));
+            }
+
+            body {
+                height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            h1 { display: none; } /* На телефоне прячем заголовок ради места */
+
+            /* Грид-раскладка на телефоне: перекидывает боковые панели наверх! */
+            .game-container {
+                display: grid;
+                grid-template-columns: 58px 1fr 1fr 58px;
+                grid-template-rows: 27px 27px 1fr;
+                grid-template-areas:
+                    "hold score best next"
+                    "hold level lines next"
+                    "canvas canvas canvas canvas";
+                gap: 4px;
+                width: 100%;
+                max-width: 380px;
+                margin: 0 auto;
+                padding: 6px 6px 0 6px;
+                height: calc(100dvh - var(--controls-h) - 6px);
+            }
+
+            /* Раскрываем дочерние элементы панелей прямо в верхнюю сетку */
+            .panel-left, .panel-right {
                 display: contents;
             }
 
-            .left-panel, .right-panel {
-                display: flex;
-                flex-direction: column;
-                gap: 12px;
-                height: auto;
-            }
+            /* Расстановка элементов в верхнем ряду */
+            .box-hold  { grid-area: hold; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+            .box-next  { grid-area: next; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+            .box-score { grid-area: score; display: flex; flex-direction: column; justify-content: center; }
+            .box-best  { grid-area: best; display: flex; flex-direction: column; justify-content: center; }
+            .box-level { grid-area: level; display: flex; flex-direction: column; justify-content: center; }
+            .box-lines { grid-area: lines; display: flex; flex-direction: column; justify-content: center; }
 
-            .box-hold, .box-next {
-                width: 80px;
-                height: 80px;
-            }
-            .box-hold p, .box-next p { font-size: 9px; margin-bottom: 5px; }
-            .mini-canvas { width: 56px; height: 56px; }
+            .box p { font-size: 6px; color: #888; margin-bottom: 2px; }
+            .box span { font-size: 9px; color: #00ff66; }
+            .mini-canvas { width: 40px; height: 40px; }
 
-            .stat-box {
-                min-width: 80px;
-                height: auto;
-                padding: 8px;
-            }
-            .stat-box p { font-size: 8px; margin-bottom: 5px; }
-            .stat-box span { font-size: 12px; }
-
+            /* Стакан занимает максимум оставшейся высоты */
             .canvas-wrap {
-                width: 300px;
-                height: 600px;
-                flex: none;
+                grid-area: canvas;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100%;
+                min-height: 0; /* Чтобы flex не распирал родителя */
+                position: relative;
+                padding: 4px 0;
             }
+
             canvas#gameCanvas {
-                width: 300px;
-                height: 600px;
+                height: 100%;
+                width: auto;
+                aspect-ratio: 10 / 20;
+                max-height: 100%;
             }
+
+            /* Кнопки внизу */
+            .mobile-controls {
+                height: var(--controls-h);
+                width: 100%;
+                background: #18181c;
+                border-top: 3px solid #444;
+                padding: 5px 6px calc(5px + env(safe-area-inset-bottom, 0px)) 6px;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: 1fr 1fr;
+                gap: 5px;
+                z-index: 100;
+            }
+
+            .btn {
+                background: #2a2a32;
+                border: 3px solid #666;
+                box-shadow: inset 2px 2px 0px #888, inset -2px -2px 0px #111, 0 2px 0px #000;
+                color: #fff;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                cursor: pointer;
+                touch-action: manipulation;
+            }
+
+            .btn:active {
+                box-shadow: inset -2px -2px 0px #888, inset 2px 2px 0px #111;
+                transform: translateY(2px);
+            }
+
+            .btn-hold { color: #00ffff; border-color: #008888; font-size: 10px; }
+            .btn-rotate { color: #d442f5; border-color: #8c1da6; font-size: 10px; }
+            .btn-drop { color: #ff3344; border-color: #aa1122; font-size: 10px; }
+            .btn-dir { font-size: 16px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="game-wrapper">
-        <h1 class="desktop-title">BLOCK FALL</h1>
+    <h1>BLOCK FALL</h1>
 
-        <div class="game-container">
-            <!-- HUD: На смартфонах лежит вверху над стаканом, на ПК разделяется по бокам -->
-            <div class="hud-top-bar">
-                <div class="panel left-panel">
-                    <div class="box box-hold">
-                        <p>HOLD</p>
-                        <canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas>
-                    </div>
-                    <div class="box stat-box">
-                        <p>SCORE</p>
-                        <span id="score">0</span>
-                    </div>
-                    <div class="box stat-box">
-                        <p>BEST</p>
-                        <span id="highScore">0</span>
-                    </div>
-                </div>
-
-                <div class="panel right-panel">
-                    <div class="box box-next">
-                        <p>NEXT</p>
-                        <canvas id="nextCanvas" class="mini-canvas" width="120" height="120"></canvas>
-                    </div>
-                    <div class="box stat-box">
-                        <p>LVL</p>
-                        <span id="level">1</span>
-                    </div>
-                    <div class="box stat-box">
-                        <p>LINES</p>
-                        <span id="lines">0</span>
-                    </div>
-                </div>
+    <div class="game-container">
+        <!-- Левая панель на ПК / Разбирается наверх на телефоне -->
+        <div class="ui-panel panel-left">
+            <div class="box box-hold">
+                <p>HOLD</p>
+                <canvas id="holdCanvas" class="mini-canvas" width="120" height="120"></canvas>
             </div>
-
-            <!-- Игровое поле -->
-            <div class="canvas-wrap">
-                <canvas id="gameCanvas" width="300" height="600"></canvas>
-                
-                <div id="overlay">
-                    <h2 id="overlayTitle">PAUSED</h2>
-                    <button id="overlayBtn" onclick="togglePause()">RESUME</button>
-                </div>
+            <div class="box box-score">
+                <p>SCORE</p>
+                <span id="score">0</span>
             </div>
-        </div>
-    </div>
-
-    <!-- Мобильный пульт управления снизу -->
-    <div class="mobile-controls">
-        <div class="btn btn-hold" id="btnHold">HOLD</div>
-        <div class="btn btn-rotate" id="btnRotate">ROTATE</div>
-        <div class="btn btn-drop" id="btnDrop">DROP</div>
-
-        <div class="btn btn-dir" id="btnLeft">◀</div>
-        <div class="btn btn-dir" id="btnDown">▼</div>
-        <div class="btn btn-dir" id="btnRight">▶</div>
-    </div>
-    
-    <script src="js/constants.js"></script>
-    <script src="js/piece.js"></script>
-    <script src="js/board.js"></script>
-    <script src="js/main.js"></script>
-</body>
-</html>
+            <div class="box box-best">
+                <p>BEST</p>
+                <span id="highScore">0</span>
