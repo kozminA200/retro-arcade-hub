@@ -2,7 +2,7 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Вертикальное поле 20x30
+    // Ровно 20 колонок и 30 строк, как на картинке
     const COLS = 20;
     const ROWS = 30;
     const CELL_SIZE = 25; 
@@ -64,7 +64,7 @@
     createColorGrid('grid-p1', selectedColorP1, (color) => selectedColorP1 = color);
     createColorGrid('grid-p2', selectedColorP2, (color) => selectedColorP2 = color);
 
-    // --- ГЕНЕРАЦИЯ ШУМА КАРАНДАША ---
+    // --- ШУМ КАРАНДАША ---
     let pencilNoisePattern = null;
 
     function generatePencilNoise() {
@@ -85,45 +85,52 @@
         for (let i = 0; i < 600; i++) {
             octx.fillStyle = `rgba(0, 0, 0, ${Math.random() * 0.2})`;
             octx.fillRect(Math.random() * 50, Math.random() * 50, 1, 1);
-            
             octx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
             octx.fillRect(Math.random() * 50, Math.random() * 50, 1.5, 1.5);
         }
         
         pencilNoisePattern = ctx.createPattern(offCanvas, 'repeat');
     }
-    
     generatePencilNoise();
 
-    // --- ОТРИСОВКА ---
+    // --- ОТРИСОВКА ТЕТРАДНОГО ЛИСТА (В точности как на изображении) ---
 
     function drawGrid() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Голубая сетка
         ctx.lineWidth = 1;
-        
+        ctx.strokeStyle = '#adcbe3';
+
         for (let i = 0; i <= COLS; i++) {
-            ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height);
-            ctx.strokeStyle = '#a4c8e1'; ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(i * CELL_SIZE + 0.5, 0);
+            ctx.lineTo(i * CELL_SIZE + 0.5, canvas.height);
+            ctx.stroke();
         }
         for (let i = 0; i <= ROWS; i++) {
-            ctx.beginPath(); ctx.moveTo(0, i * CELL_SIZE); ctx.lineTo(canvas.width, i * CELL_SIZE);
-            ctx.strokeStyle = '#a4c8e1'; ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, i * CELL_SIZE + 0.5);
+            ctx.lineTo(canvas.width, i * CELL_SIZE + 0.5);
+            ctx.stroke();
         }
 
-        // Красные поля сверху и снизу (стартовые зоны)
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-        ctx.lineWidth = 2;
+        // Две красные полосы полей (на расстоянии 1 клетки сверху и снизу)
+        ctx.strokeStyle = '#d96b6b';
+        ctx.lineWidth = 1.5;
 
-        // Поле Игрока 2 (сверху)
+        // Верхняя красная линия (после 1-й клетки)
         ctx.beginPath();
-        ctx.moveTo(0, CELL_SIZE);
-        ctx.lineTo(canvas.width, CELL_SIZE);
+        ctx.moveTo(0, 1 * CELL_SIZE + 0.5);
+        ctx.lineTo(canvas.width, 1 * CELL_SIZE + 0.5);
         ctx.stroke();
 
-        // Поле Игрока 1 (снизу)
+        // Нижняя красная линия (за 1 клетку до нижнего края)
         ctx.beginPath();
-        ctx.moveTo(0, canvas.height - CELL_SIZE);
-        ctx.lineTo(canvas.width, canvas.height - CELL_SIZE);
+        ctx.moveTo(0, (ROWS - 1) * CELL_SIZE + 0.5);
+        ctx.lineTo(canvas.width, (ROWS - 1) * CELL_SIZE + 0.5);
         ctx.stroke();
     }
 
@@ -182,13 +189,17 @@
 
         if (!isOutOfBounds && !drag.isDragging && isHumanTurn) {
             rotateBtn.classList.remove('hidden');
-            // Учитываем canvas.offsetLeft/Top для точного центрирования кнопок на мобильных
-            rotateBtn.style.left = `${canvas.offsetLeft + (currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
+            
+            // Защита кнопок от вылета за границы экрана
+            const rawX = canvas.offsetLeft + (currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX;
+            const clampedX = Math.min(canvas.offsetLeft + rect.width - 15, Math.max(canvas.offsetLeft + 15, rawX));
+
+            rotateBtn.style.left = `${clampedX}px`;
             rotateBtn.style.top = `${canvas.offsetTop + currentRoll.y * CELL_SIZE * scaleY}px`;
 
             if (isValid) {
                 confirmBtn.classList.remove('hidden');
-                confirmBtn.style.left = `${canvas.offsetLeft + (currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
+                confirmBtn.style.left = `${clampedX}px`;
                 confirmBtn.style.top = `${canvas.offsetTop + (currentRoll.y + currentRoll.h) * CELL_SIZE * scaleY}px`;
             } else {
                 confirmBtn.classList.add('hidden');
@@ -204,24 +215,22 @@
         document.getElementById('player2-score').style.border = gameState.currentPlayer === 2 ? '2px solid ' + gameState.colors.p2 : 'none';
     }
 
-    // --- ЛОГИКА ПРАВИЛ (Повернута на 90° CCW) ---
+    // --- ПРАВИЛА ---
 
     function isValidPlacement(x, y, w, h, player) {
-        // 1. Проверка наложений
         for (let r = y; r < y + h; r++) {
             for (let c = x; c < x + w; c++) {
                 if (gameState.grid[r][c] !== 0) return false;
             }
         }
 
-        // 2. Первый ход: Игрок 1 — у нижней стенки, Игрок 2 — у верхней стенки
+        // Игрок 1 начинает снизу, Игрок 2 — сверху
         if (gameState.isFirstMove[player]) {
-            if (player === 1 && y + h === ROWS) return true; // Касается нижней стенки
-            if (player === 2 && y === 0) return true;        // Касается верхней стенки
+            if (player === 1 && y + h === ROWS) return true;
+            if (player === 2 && y === 0) return true;
             return false;
         }
 
-        // 3. Касание своих фигур
         let touchesOwn = false;
         for (let r = y; r < y + h; r++) {
             if (x > 0 && gameState.grid[r][x - 1] === player) touchesOwn = true;
@@ -281,15 +290,15 @@
     }
 
     function endGame() {
-        const winner = gameState.scores.p1 > gameState.scores.p2 ? "Игрок 1 (Снизу)" : 
-                      (gameState.scores.p2 > gameState.scores.p1 ? "Игрок 2 (Сверху)" : "Ничья");
+        const winner = gameState.scores.p1 > gameState.scores.p2 ? "Игрок 1" : 
+                      (gameState.scores.p2 > gameState.scores.p1 ? "Игрок 2" : "Ничья");
         setTimeout(() => {
             alert(`Игра окончена! Нет доступных ходов.\nСчет:\nИгрок 1: ${gameState.scores.p1}\nИгрок 2: ${gameState.scores.p2}\n\nПобедитель: ${winner}!`);
             location.reload();
         }, 500);
     }
 
-    // --- ЛОГИКА БОТА (Атакует сверху вниз) ---
+    // --- БОТ ---
 
     function calculateBestMove(w, h, player) {
         let bestMove = null;
@@ -303,13 +312,9 @@
                 for (let x = 0; x <= COLS - o.width; x++) {
                     if (isValidPlacement(x, y, o.width, o.height, player)) {
                         let score = 0;
-                        // 1. Бот стремится вниз к игроку (чем больше Y, тем лучше)
-                        score += y * 10; 
-                        
-                        // 2. Бот держится центра по горизонтали
+                        score += y * 10; // Наступает вниз
                         let distToCenterX = Math.abs(x + o.width / 2 - COLS / 2);
                         score -= distToCenterX * 2;
-
                         score += Math.random() * 5;
 
                         if (score > bestScore) {
