@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Битва Прямоугольников</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-wrapper">
+        <!-- Меню до начала игры -->
+        <div id="start-screen">
+            <h1>Битва на листке</h1>
+            <div class="settings">
+                <label>Режим: 
+                    <select id="game-mode">
+                        <option value="pvp">Игрок VS Игрок</option>
+                        <option value="pve">Игрок VS Бот</option>
+                    </select>
+                </label>
+                
+                <!-- Выбор цвета -->
+                <div class="colors">
+                    <div class="color-picker">
+                        <div>Цвет Игрока 1 (Слева):</div>
+                        <div id="grid-p1" class="color-grid"></div>
+                    </div>
+                    <div class="color-picker">
+                        <div>Цвет Игрока 2 (Справа/Бот):</div>
+                        <div id="grid-p2" class="color-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Кнопка старта (которая пропала) -->
+                <button id="start-btn">Начать игру</button>
+            </div>
+        </div>
+
+        <!-- Игровой интерфейс -->
+        <div id="game-ui" class="hidden">
+            <div class="hud">
+                <div id="player1-score" class="score-box">Игрок 1: <span>0</span></div>
+                <div id="dice-container">
+                    <button id="roll-dice-btn">Бросить кубики</button>
+                    <div id="dice-result">🎲 🎲</div>
+                </div>
+                <div id="player2-score" class="score-box">Игрок 2: <span>0</span></div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="gameCanvas"></canvas>
+                <button id="rotate-btn" class="action-btn hidden" title="Повернуть"></button>
+                <button id="confirm-btn" class="action-btn hidden" title="Поставить сюда">✓</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
