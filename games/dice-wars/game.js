@@ -2,8 +2,9 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    const COLS = 30;
-    const ROWS = 20;
+    // Вертикальное поле 20x30
+    const COLS = 20;
+    const ROWS = 30;
     const CELL_SIZE = 25; 
     
     canvas.width = COLS * CELL_SIZE;
@@ -72,7 +73,6 @@
         offCanvas.height = 50;
         const octx = offCanvas.getContext('2d');
         
-        // 1. Диагональная штриховка
         octx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
         octx.lineWidth = 0.8;
         for (let i = -50; i < 100; i += 4) {
@@ -82,13 +82,10 @@
             octx.stroke();
         }
         
-        // 2. Зернистость (шум бумаги и грифеля)
         for (let i = 0; i < 600; i++) {
-            // Темные точки
             octx.fillStyle = `rgba(0, 0, 0, ${Math.random() * 0.2})`;
             octx.fillRect(Math.random() * 50, Math.random() * 50, 1, 1);
             
-            // Светлые точки (эффект непрокрашенной бумаги)
             octx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.3})`;
             octx.fillRect(Math.random() * 50, Math.random() * 50, 1.5, 1.5);
         }
@@ -96,7 +93,6 @@
         pencilNoisePattern = ctx.createPattern(offCanvas, 'repeat');
     }
     
-    // Создаем текстуру при запуске
     generatePencilNoise();
 
     // --- ОТРИСОВКА ---
@@ -104,6 +100,7 @@
     function drawGrid() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.lineWidth = 1;
+        
         for (let i = 0; i <= COLS; i++) {
             ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height);
             ctx.strokeStyle = '#a4c8e1'; ctx.stroke();
@@ -112,9 +109,21 @@
             ctx.beginPath(); ctx.moveTo(0, i * CELL_SIZE); ctx.lineTo(canvas.width, i * CELL_SIZE);
             ctx.strokeStyle = '#a4c8e1'; ctx.stroke();
         }
-        ctx.beginPath(); ctx.moveTo(CELL_SIZE, 0); ctx.lineTo(CELL_SIZE, canvas.height);
-        ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(canvas.width - CELL_SIZE, 0); ctx.lineTo(canvas.width - CELL_SIZE, canvas.height);
+
+        // Красные поля сверху и снизу (стартовые зоны)
+        ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+        ctx.lineWidth = 2;
+
+        // Поле Игрока 2 (сверху)
+        ctx.beginPath();
+        ctx.moveTo(0, CELL_SIZE);
+        ctx.lineTo(canvas.width, CELL_SIZE);
+        ctx.stroke();
+
+        // Поле Игрока 1 (снизу)
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - CELL_SIZE);
+        ctx.lineTo(canvas.width, canvas.height - CELL_SIZE);
         ctx.stroke();
     }
 
@@ -125,19 +134,16 @@
             const pw = shape.w * CELL_SIZE;
             const ph = shape.h * CELL_SIZE;
 
-            // 1. Базовый полупрозрачный цвет
             ctx.fillStyle = shape.color;
             ctx.globalAlpha = 0.5;
             ctx.fillRect(px, py, pw, ph);
             
-            // 2. Накладываем текстуру карандаша
             if (pencilNoisePattern) {
                 ctx.globalAlpha = 1.0;
                 ctx.fillStyle = pencilNoisePattern;
                 ctx.fillRect(px, py, pw, ph);
             }
             
-            // 3. Обводка (чуть небрежная)
             ctx.strokeStyle = '#2c3e50'; 
             ctx.lineWidth = 2; 
             ctx.strokeRect(px, py, pw, ph);
@@ -157,12 +163,10 @@
         const pw = currentRoll.w * CELL_SIZE;
         const ph = currentRoll.h * CELL_SIZE;
 
-        // Цвет превью
         ctx.fillStyle = isValid ? (gameState.currentPlayer === 1 ? gameState.colors.p1 : gameState.colors.p2) : 'rgba(150, 150, 150, 0.5)';
         ctx.globalAlpha = 0.4;
         ctx.fillRect(px, py, pw, ph);
 
-        // Текстура для превью (если позиция верная)
         if (pencilNoisePattern && isValid) {
             ctx.globalAlpha = 0.8;
             ctx.fillStyle = pencilNoisePattern;
@@ -178,13 +182,14 @@
 
         if (!isOutOfBounds && !drag.isDragging && isHumanTurn) {
             rotateBtn.classList.remove('hidden');
-            rotateBtn.style.left = `${(currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
-            rotateBtn.style.top = `${currentRoll.y * CELL_SIZE * scaleY}px`;
+            // Учитываем canvas.offsetLeft/Top для точного центрирования кнопок на мобильных
+            rotateBtn.style.left = `${canvas.offsetLeft + (currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
+            rotateBtn.style.top = `${canvas.offsetTop + currentRoll.y * CELL_SIZE * scaleY}px`;
 
             if (isValid) {
                 confirmBtn.classList.remove('hidden');
-                confirmBtn.style.left = `${(currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
-                confirmBtn.style.top = `${(currentRoll.y + currentRoll.h) * CELL_SIZE * scaleY}px`;
+                confirmBtn.style.left = `${canvas.offsetLeft + (currentRoll.x + currentRoll.w) * CELL_SIZE * scaleX}px`;
+                confirmBtn.style.top = `${canvas.offsetTop + (currentRoll.y + currentRoll.h) * CELL_SIZE * scaleY}px`;
             } else {
                 confirmBtn.classList.add('hidden');
             }
@@ -199,19 +204,24 @@
         document.getElementById('player2-score').style.border = gameState.currentPlayer === 2 ? '2px solid ' + gameState.colors.p2 : 'none';
     }
 
-    // --- ЛОГИКА ПРАВИЛ ---
+    // --- ЛОГИКА ПРАВИЛ (Повернута на 90° CCW) ---
 
     function isValidPlacement(x, y, w, h, player) {
+        // 1. Проверка наложений
         for (let r = y; r < y + h; r++) {
             for (let c = x; c < x + w; c++) {
                 if (gameState.grid[r][c] !== 0) return false;
             }
         }
+
+        // 2. Первый ход: Игрок 1 — у нижней стенки, Игрок 2 — у верхней стенки
         if (gameState.isFirstMove[player]) {
-            if (player === 1 && x === 0) return true;
-            if (player === 2 && x + w === COLS) return true;
+            if (player === 1 && y + h === ROWS) return true; // Касается нижней стенки
+            if (player === 2 && y === 0) return true;        // Касается верхней стенки
             return false;
         }
+
+        // 3. Касание своих фигур
         let touchesOwn = false;
         for (let r = y; r < y + h; r++) {
             if (x > 0 && gameState.grid[r][x - 1] === player) touchesOwn = true;
@@ -271,14 +281,15 @@
     }
 
     function endGame() {
-        const winner = gameState.scores.p1 > gameState.scores.p2 ? "Игрок 1" : (gameState.scores.p2 > gameState.scores.p1 ? "Игрок 2" : "Ничья");
+        const winner = gameState.scores.p1 > gameState.scores.p2 ? "Игрок 1 (Снизу)" : 
+                      (gameState.scores.p2 > gameState.scores.p1 ? "Игрок 2 (Сверху)" : "Ничья");
         setTimeout(() => {
             alert(`Игра окончена! Нет доступных ходов.\nСчет:\nИгрок 1: ${gameState.scores.p1}\nИгрок 2: ${gameState.scores.p2}\n\nПобедитель: ${winner}!`);
             location.reload();
         }, 500);
     }
 
-    // --- ЛОГИКА БОТА (ИИ) ---
+    // --- ЛОГИКА БОТА (Атакует сверху вниз) ---
 
     function calculateBestMove(w, h, player) {
         let bestMove = null;
@@ -292,9 +303,13 @@
                 for (let x = 0; x <= COLS - o.width; x++) {
                     if (isValidPlacement(x, y, o.width, o.height, player)) {
                         let score = 0;
-                        score += (COLS - x) * 10; 
-                        let distToCenterY = Math.abs(y + o.height / 2 - ROWS / 2);
-                        score -= distToCenterY * 2;
+                        // 1. Бот стремится вниз к игроку (чем больше Y, тем лучше)
+                        score += y * 10; 
+                        
+                        // 2. Бот держится центра по горизонтали
+                        let distToCenterX = Math.abs(x + o.width / 2 - COLS / 2);
+                        score -= distToCenterX * 2;
+
                         score += Math.random() * 5;
 
                         if (score > bestScore) {
@@ -352,13 +367,16 @@
         }, 50);
     }
 
-    // --- DRAG & DROP И СОБЫТИЯ ---
+    // --- DRAG & DROP ---
 
     function getPointerPos(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: (clientX - rect.left) * (canvas.width / rect.width), y: (clientY - rect.top) * (canvas.height / rect.height) };
+        return { 
+            x: (clientX - rect.left) * (canvas.width / rect.width), 
+            y: (clientY - rect.top) * (canvas.height / rect.height) 
+        };
     }
 
     function startDrag(e) {
