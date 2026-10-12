@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Битва Прямоугольников</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -22,16 +22,15 @@
                 <!-- Выбор цвета -->
                 <div class="colors">
                     <div class="color-picker">
-                        <div>Цвет Игрока 1 (Слева):</div>
+                        <div>Цвет Игрока 1 (Снизу):</div>
                         <div id="grid-p1" class="color-grid"></div>
                     </div>
                     <div class="color-picker">
-                        <div>Цвет Игрока 2 (Справа/Бот):</div>
+                        <div>Цвет Игрока 2 (Сверху / Бот):</div>
                         <div id="grid-p2" class="color-grid"></div>
                     </div>
                 </div>
 
-                <!-- Кнопка старта (которая пропала) -->
                 <button id="start-btn">Начать игру</button>
             </div>
         </div>
@@ -39,12 +38,12 @@
         <!-- Игровой интерфейс -->
         <div id="game-ui" class="hidden">
             <div class="hud">
-                <div id="player1-score" class="score-box">Игрок 1: <span>0</span></div>
+                <div id="player2-score" class="score-box">Игрок 2 (Сверху): <span>0</span></div>
                 <div id="dice-container">
                     <button id="roll-dice-btn">Бросить кубики</button>
                     <div id="dice-result">🎲 🎲</div>
                 </div>
-                <div id="player2-score" class="score-box">Игрок 2: <span>0</span></div>
+                <div id="player1-score" class="score-box">Игрок 1 (Снизу): <span>0</span></div>
             </div>
             
             <div class="canvas-container">
