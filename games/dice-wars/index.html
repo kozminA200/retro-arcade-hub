@@ -22,11 +22,11 @@
                 <!-- Выбор цвета -->
                 <div class="colors">
                     <div class="color-picker">
-                        <div>Цвет Игрока 1 (Снизу):</div>
+                        <div>Цвет Игрока 1:</div>
                         <div id="grid-p1" class="color-grid"></div>
                     </div>
                     <div class="color-picker">
-                        <div>Цвет Игрока 2 (Сверху / Бот):</div>
+                        <div>Цвет Игрока 2:</div>
                         <div id="grid-p2" class="color-grid"></div>
                     </div>
                 </div>
@@ -38,18 +38,18 @@
         <!-- Игровой интерфейс -->
         <div id="game-ui" class="hidden">
             <div class="hud">
-                <div id="player2-score" class="score-box">Игрок 2 (Сверху): <span>0</span></div>
+                <div id="player2-score" class="score-box">Игрок 2: <span>0</span></div>
                 <div id="dice-container">
-                    <button id="roll-dice-btn">Бросить кубики</button>
+                    <button id="roll-dice-btn">Бросить</button>
                     <div id="dice-result">🎲 🎲</div>
                 </div>
-                <div id="player1-score" class="score-box">Игрок 1 (Снизу): <span>0</span></div>
+                <div id="player1-score" class="score-box">Игрок 1: <span>0</span></div>
             </div>
             
             <div class="canvas-container">
                 <canvas id="gameCanvas"></canvas>
                 <button id="rotate-btn" class="action-btn hidden" title="Повернуть"></button>
-                <button id="confirm-btn" class="action-btn hidden" title="Поставить сюда">✓</button>
+                <button id="confirm-btn" class="action-btn hidden" title="Поставить">✓</button>
             </div>
         </div>
     </div>
